@@ -11,16 +11,27 @@ def read_files_to_download(file_path=None):
 
     try:
         with open(file_path, 'r') as f:
-            print(f)
-            # Skip header lines
-            for _ in range(4):
-                next(f)
+            # Skip header lines until we reach the table header
+            while True:
+                line = f.readline().strip()
+                if line.startswith('Filename | Size'):
+                    f.readline()  # Skip the separator line
+                    break
+                if not line:  # EOF
+                    return []
+
             # Create a list of files to download
-            files_to_download = [line.split('|')[0].strip() for line in f]
+            files_to_download = []
+            for line in f:
+                if line.strip():  # Skip empty lines
+                    file_name = line.split('|')[0].strip()
+                    files_to_download.append(file_name)
+
     except FileNotFoundError:
         print(f"No existing file list found: {file_path}")
         return []
-    print(files_to_download)
+
+    print(f"Found {len(files_to_download)} files to download")
     return files_to_download
 
 def download_single_file(item_identifier, file_info, temp_download_directory, download_directory):
