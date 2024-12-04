@@ -10,27 +10,43 @@ def list_files_from_ia(item_identifier):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_file = f"{item_identifier}_{timestamp}.txt"
 
-    print(f"\nFile listing for item: {item_identifier}\n")
-    print("Filename | Size (MB) | MD5")
-    print("-" * 50)
+    # Initialize counters
+    total_size = 0
+    file_count = 0
+    files_info = []
 
-    # Open file for writing
+    # Collect file information
+    for file in item.files:
+        if not file['name'].startswith('_'):
+            size_mb = float(file.get('size', 0)) / (1024 * 1024)
+            total_size += size_mb
+            file_count += 1
+            files_info.append({
+                'name': file['name'],
+                'size': size_mb,
+                'md5': file.get('md5', 'N/A')
+            })
+
+    # Write to file
     with open(output_file, 'w') as f:
+        # Write header information
         f.write(f"File listing for item: {item_identifier}\n")
-        f.write("Generated: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
+        f.write("Generated: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n")
+        f.write(f"Total Files: {file_count}\n")
+        f.write(f"Total Size: {total_size:.2f} MB\n\n")
         f.write("Filename | Size (MB) | MD5\n")
         f.write("-" * 50 + "\n")
 
-        for file in item.files:
-            # Skip metadata files
-            if not file['name'].startswith('_'):
-                size_mb = float(file.get('size', 0)) / (1024 * 1024)
-                md5 = file.get('md5', 'N/A')
-                output_line = f"{file['name']} | {size_mb:.2f} MB | {md5}"
-                print(output_line)
-                f.write(output_line + "\n")
+        # Write file details
+        for file in files_info:
+            output_line = f"{file['name']} | {file['size']:.2f} MB | {file['md5']}"
+            f.write(output_line + "\n")
 
-    print(f"\nFile list has been written to: {output_file}")
+    # Print summary to console
+    print(f"\nSummary for item: {item_identifier}")
+    print(f"Total Files: {file_count}")
+    print(f"Total Size: {total_size:.2f} MB")
+    print(f"\nDetailed file list has been written to: {output_file}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='List files from Internet Archive item')

@@ -11,16 +11,27 @@ def read_files_to_download(file_path=None):
 
     try:
         with open(file_path, 'r') as f:
-            print(f)
-            # Skip header lines
-            for _ in range(4):
-                next(f)
+            # Skip header lines until we reach the table header
+            while True:
+                line = f.readline().strip()
+                if line.startswith('Filename | Size'):
+                    f.readline()  # Skip the separator line
+                    break
+                if not line:  # EOF
+                    return []
+
             # Create a list of files to download
-            files_to_download = [line.split('|')[0].strip() for line in f]
+            files_to_download = []
+            for line in f:
+                if line.strip():  # Skip empty lines
+                    file_name = line.split('|')[0].strip()
+                    files_to_download.append(file_name)
+
     except FileNotFoundError:
-        print(f"No existing file list found: {file_path}")
+        print(f"\n-->No existing file list found: {file_path}")
         return []
-    print(files_to_download)
+
+    print(f"\nFound {len(files_to_download)} files to download")
     return files_to_download
 
 def download_single_file(item_identifier, file_info, temp_download_directory, download_directory):
@@ -30,7 +41,7 @@ def download_single_file(item_identifier, file_info, temp_download_directory, do
 
     # Skip if file already exists in destination
     if os.path.exists(dest_file):
-        print(f"Skipping {file_name} - already exists in destination")
+        print(f"-->Skipping {file_name} - already exists in destination")
         return
 
     # Create destination directory if it doesn't exist
@@ -50,14 +61,14 @@ def download_single_file(item_identifier, file_info, temp_download_directory, do
         # Copy the downloaded file to final destination
         if os.path.exists(src_file):
             shutil.copy2(src_file, dest_file)
-            print(f"Copied {file_name} to final destination")
+            print(f"\n\n---->Copied {file_name} to final destination\n")
 
             # Remove the file from temp directory after copying
             os.remove(src_file)
         else:
-            print(f"Failed to download {file_name}")
+            print(f"\n\n-->Failed to download {file_name}\n")
     except Exception as e:
-        print(f"Error downloading {file_name}: {str(e)}")
+        print(f"\n\n-->Error downloading {file_name}: {str(e)}\n")
 
 def download_files_from_ia(item_identifier, download_directory, file_list=None, max_workers=4):
     # Change temp directory to be relative to current directory
@@ -73,9 +84,9 @@ def download_files_from_ia(item_identifier, download_directory, file_list=None, 
     # Get list of files that need to be downloaded
     files_to_download = read_files_to_download(file_list)
     if files_to_download:
-        print(f"\nDownloading {len(files_to_download)} files from list...")
+        print(f"\n\n->Downloading {len(files_to_download)} files from list...\n")
     else:
-        print("\nNo file list provided. Downloading all files...")
+        print("\n\n->No file list provided. Downloading all files...\n")
 
     # Filter files to download
     files_to_process = [
