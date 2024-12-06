@@ -51,7 +51,7 @@ python internetArchive.py <item_identifier> [options]
 
 #### Options
 
--   `--file-list`: Path to a text file containing list of files to download
+-   `--file-list`: Path to a text file containing list of files to download(just remove lines of files not needed to download from generated txt file and pass here)
 -   `--download-dir`: Download directory (default: E:/internetArchive)
 -   `--max-workers`: Maximum number of concurrent downloads (default: 4)
 
